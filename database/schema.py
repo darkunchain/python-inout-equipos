@@ -45,3 +45,13 @@ def create_tables():
         """)
 
         conn.commit()
+
+def drop_tables():
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("DROP TABLE IF EXISTS movimientos;")
+        cursor.execute("DROP TABLE IF EXISTS elementos;")
+        cursor.execute("DROP TABLE IF EXISTS usuarios;")
+
+        conn.commit()
