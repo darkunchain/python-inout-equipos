@@ -1,4 +1,5 @@
 from database.connection import get_connection
+from utils.time_utils import ahora_bogota, fecha_hoy_bogota
 
 
 def buscar_usuario_con_elementos(documento: str):
@@ -92,10 +93,11 @@ def registrar_ingreso(elemento_id: int, usuario_id: int, observacion: str = ""):
                 usuario_id,
                 elemento_id,
                 tipo_movimiento,
+                fecha_movimiento,
                 observacion
             )
-            VALUES (?, ?, 'INGRESO', ?);
-        """, (usuario_id, elemento_id, observacion))
+            VALUES (?, ?, 'INGRESO', ?, ?);
+        """, (usuario_id, elemento_id, ahora_bogota(), observacion))
 
         cursor.execute("""
             UPDATE elementos
@@ -140,10 +142,11 @@ def registrar_salida(elemento_id: int, usuario_id: int, observacion: str = ""):
                 usuario_id,
                 elemento_id,
                 tipo_movimiento,
+                fecha_movimiento,
                 observacion
             )
-            VALUES (?, ?, 'SALIDA', ?);
-        """, (usuario_id, elemento_id, observacion))
+            VALUES (?, ?, 'SALIDA', ?, ?);
+        """, (usuario_id, elemento_id, ahora_bogota(), observacion))
 
         cursor.execute("""
             UPDATE elementos
@@ -282,15 +285,165 @@ def registrar_usuario_con_equipo(
                 usuario_id,
                 elemento_id,
                 tipo_movimiento,
+                fecha_movimiento,
                 observacion
             )
-            VALUES (?, ?, 'INGRESO', ?);
+            VALUES (?, ?, 'INGRESO', ?, ?);
         """, (
             usuario_id,
             elemento_id,
+            ahora_bogota(),
             "Ingreso inicial al registrar usuario nuevo",
         ))
 
         conn.commit()
 
         return usuario_id
+    
+def registrar_equipo_a_usuario(
+    usuario_id: int,
+    tipo_elemento: str,
+    marca: str,
+    serial: str,
+):
+    """
+    Registra un nuevo equipo a un usuario existente.
+    El equipo queda automáticamente en estado DENTRO
+    y se registra su primer movimiento como INGRESO.
+    """
+
+    tipo_elemento = tipo_elemento.strip()
+    marca = marca.strip()
+    serial = serial.strip()
+
+    if not usuario_id:
+        raise ValueError("No hay un usuario seleccionado.")
+
+    if not tipo_elemento:
+        raise ValueError("El tipo de equipo o elemento es obligatorio.")
+
+    if not marca:
+        raise ValueError("La marca del equipo es obligatoria.")
+
+    if not serial:
+        raise ValueError("El serial del equipo es obligatorio.")
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT id
+            FROM usuarios
+            WHERE id = ?;
+        """, (usuario_id,))
+
+        usuario = cursor.fetchone()
+
+        if usuario is None:
+            raise ValueError("El usuario seleccionado no existe.")
+
+        cursor.execute("""
+            SELECT id
+            FROM elementos
+            WHERE serial = ?;
+        """, (serial,))
+
+        serial_existente = cursor.fetchone()
+
+        if serial_existente is not None:
+            raise ValueError("Ya existe un equipo registrado con este serial.")
+
+        cursor.execute("""
+            INSERT INTO elementos (
+                usuario_id,
+                tipo_elemento,
+                marca,
+                serial,
+                descripcion,
+                estado_actual
+            )
+            VALUES (?, ?, ?, ?, ?, 'DENTRO');
+        """, (
+            usuario_id,
+            tipo_elemento,
+            marca,
+            serial,
+            "Equipo adicional registrado al usuario existente",
+        ))
+
+        elemento_id = cursor.lastrowid
+
+        cursor.execute("""
+            INSERT INTO movimientos (
+                usuario_id,
+                elemento_id,
+                tipo_movimiento,
+                fecha_movimiento,
+                observacion
+            )
+            VALUES (?, ?, 'INGRESO', ?, ?);
+        """, (
+            usuario_id,
+            elemento_id,
+            ahora_bogota(),
+            "Ingreso inicial al registrar nuevo equipo",
+        ))
+
+        conn.commit()
+
+        return elemento_id
+    
+def obtener_equipos_que_salieron_hoy():
+    """
+    Retorna los equipos que registraron SALIDA en la fecha actual.
+    """
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                e.tipo_elemento,
+                e.marca,
+                e.serial,
+                u.nombre_completo,
+                u.documento,
+                u.dependencia,
+                m.fecha_movimiento
+            FROM movimientos m
+            INNER JOIN elementos e ON e.id = m.elemento_id
+            INNER JOIN usuarios u ON u.id = m.usuario_id
+            WHERE m.tipo_movimiento = 'SALIDA'
+              AND DATE(m.fecha_movimiento) = ?
+            ORDER BY m.fecha_movimiento DESC;
+        """, (fecha_hoy_bogota(),))
+
+        return [dict(row) for row in cursor.fetchall()]
+
+
+def obtener_equipos_que_entraron_hoy():
+    """
+    Retorna los equipos que registraron INGRESO en la fecha actual.
+    """
+
+    with get_connection() as conn:
+        cursor = conn.cursor()
+
+        cursor.execute("""
+            SELECT
+                e.tipo_elemento,
+                e.marca,
+                e.serial,
+                u.nombre_completo,
+                u.documento,
+                u.dependencia,
+                m.fecha_movimiento
+            FROM movimientos m
+            INNER JOIN elementos e ON e.id = m.elemento_id
+            INNER JOIN usuarios u ON u.id = m.usuario_id
+            WHERE m.tipo_movimiento = 'INGRESO'
+              AND DATE(m.fecha_movimiento) = ?
+            ORDER BY m.fecha_movimiento DESC;
+        """, (fecha_hoy_bogota(),))
+
+        return [dict(row) for row in cursor.fetchall()]

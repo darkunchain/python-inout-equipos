@@ -9,6 +9,7 @@ sys.path.append(str(BASE_DIR))
 
 from database.connection import get_connection
 from database.schema import create_tables, drop_tables
+from utils.time_utils import ahora_bogota
 
 
 USUARIOS = [
@@ -309,12 +310,14 @@ def insertar_elementos_y_movimientos():
                     usuario_id,
                     elemento_id,
                     tipo_movimiento,
+                    fecha_movimiento,
                     observacion
                 )
-                VALUES (?, ?, 'INGRESO', ?);
+                VALUES (?, ?, 'INGRESO', ?, ?);
             """, (
                 usuario_id,
                 elemento_id,
+                ahora_bogota(),
                 "Movimiento inicial de prueba",
             ))
 
@@ -326,12 +329,14 @@ def insertar_elementos_y_movimientos():
                         usuario_id,
                         elemento_id,
                         tipo_movimiento,
+                        fecha_movimiento,
                         observacion
                     )
-                    VALUES (?, ?, 'SALIDA', ?);
+                    VALUES (?, ?, 'SALIDA', ?, ?);
                 """, (
                     usuario_id,
                     elemento_id,
+                    ahora_bogota(),
                     "Salida inicial de prueba",
                 ))
 

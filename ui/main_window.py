@@ -22,6 +22,8 @@ from services.control_service import (
 
 from ui.historial_dialog import HistorialDialog
 from ui.usuario_form_dialog import UsuarioFormDialog
+from ui.equipo_form_dialog import EquipoFormDialog
+from ui.reportes_dialog import ReportesDialog
 
 
 class MainWindow(QMainWindow):
@@ -87,12 +89,18 @@ class MainWindow(QMainWindow):
 
         bottom_layout = QHBoxLayout()
 
+        self.btn_reportes = QPushButton("Reportes")
+        self.btn_reportes.setObjectName("secondaryButton")
+        self.btn_reportes.setMinimumHeight(42)
+        self.btn_reportes.clicked.connect(self.abrir_reportes)
+
         self.btn_nuevo_elemento = QPushButton("Ingresar nuevo equipo")
         self.btn_nuevo_elemento.setObjectName("primaryButton")
         self.btn_nuevo_elemento.setMinimumHeight(42)
         self.btn_nuevo_elemento.setEnabled(False)
         self.btn_nuevo_elemento.clicked.connect(self.ingresar_nuevo_equipo)
 
+        bottom_layout.addWidget(self.btn_reportes)
         bottom_layout.addStretch()
         bottom_layout.addWidget(self.btn_nuevo_elemento)
 
@@ -303,11 +311,15 @@ class MainWindow(QMainWindow):
             )
             return
 
-        QMessageBox.information(
-            self,
-            "Ingresar nuevo equipo",
-            "En el siguiente paso crearemos el formulario para ingresar un nuevo equipo al usuario actual."
+        dialog = EquipoFormDialog(
+            usuario=self.usuario_actual,
+            parent=self
         )
+
+        resultado = dialog.exec()
+
+        if resultado == EquipoFormDialog.Accepted and dialog.equipo_registrado:
+            self.refrescar_usuario_actual()
 
     def mostrar_historial_elemento(self, row, column):
         item = self.tabla.item(row, 0)
@@ -347,3 +359,7 @@ class MainWindow(QMainWindow):
             if documento_registrado:
                 self.documento_input.setText(documento_registrado)
                 self.buscar_usuario()
+
+    def abrir_reportes(self):
+        dialog = ReportesDialog(parent=self)
+        dialog.exec()
