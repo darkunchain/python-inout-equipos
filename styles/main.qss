@@ -13,9 +13,10 @@ QLabel#userInfo {
     background-color: #ffffff;
     border: 1px solid #d1d5db;
     border-radius: 10px;
-    padding: 12px;
-    color: #374151;
-    font-size: 14px;
+    padding: 14px;
+    color: #1f2937;
+    font-size: 17px;
+    font-weight: bold;
 }
 
 QLineEdit {
@@ -27,23 +28,59 @@ QLineEdit {
 }
 
 QPushButton {
-    background-color: #2563eb;
     color: white;
     border-radius: 8px;
-    padding: 10px 16px;
+    padding: 8px 14px;
     font-weight: bold;
 }
 
-QPushButton:hover {
-    background-color: #1d4ed8;
+QPushButton:disabled {
+    background-color: #9ca3af;
+    color: #f3f4f6;
 }
 
-QPushButton:pressed {
-    background-color: #1e40af;
+QPushButton#primaryButton {
+    background-color: #2563eb;
+}
+
+QPushButton#primaryButton:hover {
+    background-color: #092676;
+}
+
+QPushButton#primaryButton:disabled {
+    background-color: #9ca3af;
+    color: #f3f4f6;
+}
+
+QPushButton#successButton {
+    background-color: #16a34a;
+}
+
+QPushButton#successButton:hover {
+    background-color: #0b5626;
+}
+
+QPushButton#successButton:disabled {
+    background-color: #9ca3af;
+    color: #f3f4f6;
+}
+
+QPushButton#dangerButton {
+    background-color: #dc2626;
+}
+
+QPushButton#dangerButton:hover {
+    background-color: #6d0d0d;
+}
+
+QPushButton#dangerButton:disabled {
+    background-color: #9ca3af;
+    color: #f3f4f6;
 }
 
 QTableWidget {
     background-color: #ffffff;
+    alternate-background-color: #f9fafb;
     border: 1px solid #d1d5db;
     border-radius: 8px;
     gridline-color: #e5e7eb;
@@ -56,4 +93,43 @@ QHeaderView::section {
     font-weight: bold;
     padding: 8px;
     border: none;
+}
+
+QTableWidget::item {
+    padding: 6px;
+}
+
+/* Ventana emergente */
+
+QLabel#dialogTitle {
+    font-size: 22px;
+    font-weight: bold;
+    color: #1f2937;
+    padding: 10px;
+}
+
+QLabel#dialogSubtitle {
+    font-size: 15px;
+    font-weight: bold;
+    color: #374151;
+    padding: 6px;
+}
+
+/* Grupos de formularios */
+QGroupBox#formGroup {
+    background-color: #ffffff;
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    margin-top: 12px;
+    padding: 14px;
+    font-weight: bold;
+    color: #1f2937;
+}
+
+QGroupBox#formGroup::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 4px 8px;
+    color: #1f2937;
+    background-color: #f4f6f8;
 }
